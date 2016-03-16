@@ -7,7 +7,14 @@ import android.content.Intent;
 import android.os.IBinder;
 import android.util.Log;
 import android.widget.RemoteViews;
+import com.google.gson.Gson;
+import org.apache.commons.io.IOUtils;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.DefaultHttpClient;
 
+import java.io.InputStream;
 import java.text.DateFormat;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
@@ -20,7 +27,7 @@ public class UpdateWidgetService extends Service {
     private static final DateFormat OUT_FORMAT = new SimpleDateFormat("HH:mm:ss", Locale.ENGLISH);
 
     @Override
-    public int onStartCommand(Intent intent, int flags, int startId) {
+    public void onStart(Intent intent, int startId) {
         AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(this.getApplicationContext());
         int[] allWidgetIds = intent.getIntArrayExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS);
         for (int widgetId : allWidgetIds) {
@@ -30,9 +37,8 @@ public class UpdateWidgetService extends Service {
             clickIntent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, allWidgetIds);
             PendingIntent pendingIntent = PendingIntent.getBroadcast(getApplicationContext(), 0, clickIntent, PendingIntent.FLAG_UPDATE_CURRENT);
             remoteViews.setOnClickPendingIntent(R.id.layout, pendingIntent);
-            HttpSensorsLastData test = new HttpSensorsLastData("http://horske.info", this);
             try {
-                SensorsData[] response = test.execute().get();
+                SensorsData[] response = new HttpSensorsLastData("http://horske.info", this).execute().get();
                 SensorsData first = response[0];
                 remoteViews.setTextViewText(R.id.pressure, "Tlak: " + DF.format(first.getPressure()) + " hPa");
                 remoteViews.setTextViewText(R.id.humidity, "Vlhkosť: " + DF.format(first.getHumidity()) + " %");
@@ -48,11 +54,22 @@ public class UpdateWidgetService extends Service {
             }
         }
         stopSelf();
-        return START_NOT_STICKY;
     }
 
     @Override
     public IBinder onBind(Intent intent) {
         return null;
+    }
+
+    public SensorsData[] postResetRequest(String endpoint) throws Exception {
+        HttpClient httpclient = new DefaultHttpClient(HttpUtils.getHttpClientSettings(this));
+        HttpGet httpget = new HttpGet(endpoint + "/api/sensors/last");
+        httpget.setHeader("Accept", "application/json");
+        httpget.setHeader("Content-type", "application/json");
+        httpget.setHeader("Authorization", "c3VzbGlrOmJ1Ym8=");
+        HttpResponse httpResponse = httpclient.execute(httpget);
+        httpclient.getConnectionManager().shutdown();
+        InputStream inputStream = httpResponse.getEntity().getContent();
+        return new Gson().fromJson(IOUtils.toString(inputStream), SensorsData[].class);
     }
 }

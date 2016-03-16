@@ -44,7 +44,6 @@ public class HttpSensorsLastData extends AsyncTask<Void, Void, SensorsData[]> {
         httpget.setHeader("Content-type", "application/json");
         httpget.setHeader("Authorization", "c3VzbGlrOmJ1Ym8=");
         HttpResponse httpResponse = httpclient.execute(httpget);
-        httpclient.getConnectionManager().shutdown();
         InputStream inputStream = httpResponse.getEntity().getContent();
         return new Gson().fromJson(IOUtils.toString(inputStream), SensorsData[].class);
     }
