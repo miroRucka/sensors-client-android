@@ -7,27 +7,13 @@ import android.content.Intent;
 import android.os.IBinder;
 import android.util.Log;
 import android.widget.RemoteViews;
-import com.google.gson.Gson;
-import org.apache.commons.io.IOUtils;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.DefaultHttpClient;
 
-import java.io.InputStream;
-import java.text.DateFormat;
 import java.text.DecimalFormat;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.Locale;
 
 public class UpdateWidgetService extends Service {
 
     private static final DecimalFormat DF = new DecimalFormat("0.00##");
-    private static final DateFormat IN_FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.S'Z'", Locale.ENGLISH);
-    private static final DateFormat OUT_FORMAT = new SimpleDateFormat("HH:mm:ss", Locale.ENGLISH);
 
-    //2016-03-22T05:24:19.168Z
 
     @Override
     public void onStart(Intent intent, int startId) {
